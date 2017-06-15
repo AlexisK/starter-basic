@@ -1,0 +1,36 @@
+{
+  "name"            : "starter-basic",
+  "version"         : "0.1.0",
+  "description"     : "Basic JS + CSS starter",
+  "main"            : "index.js",
+  "scripts"         : {
+    "test"        : "echo \"Error: no test specified\" && exit 1",
+    "start"       : "npm run build:dev",
+    "build"       : "echo 'npm run build:[env]\ndev/stage/prod'",
+    "build:dev"   : "webpack --config ./webpack.config.js --env.name dev",
+    "build:stage" : "webpack --config ./webpack.config.js --env.name stage",
+    "build:prod"  : "webpack --config ./webpack.config.js --env.name prod"
+  },
+  "repository"      : {
+    "type" : "git",
+    "url"  : "git+https://github.com/AlexisK/starter-basic.git"
+  },
+  "keywords"        : [
+    "javascript",
+    "css",
+    "sass",
+    "webpack"
+  ],
+  "author"          : "AlexisK",
+  "license"         : "ISC",
+  "bugs"            : {
+    "url" : "https://github.com/AlexisK/starter-basic/issues"
+  },
+  "homepage"        : "https://github.com/AlexisK/starter-basic#readme",
+  "devDependencies" : {
+    "copy-webpack-plugin"         : "4.0.1",
+    "extract-text-webpack-plugin" : "2.1.2",
+    "html-webpack-plugin"         : "2.28.0",
+    "webpack"                     : "2.6.1"
+  }
+}
