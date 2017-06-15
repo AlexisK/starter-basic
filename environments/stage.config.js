@@ -5,6 +5,7 @@ module.exports = {
         devtool: 'eval'
     },
     runtime: {
+        name: 'stage',
         api: '/api/'
     }
 };

@@ -59,7 +59,7 @@ module.exports = (process_env) => {
                 // Babel is ES6+ converter to ES5
                 //'babel-loader?presets[]=es2015'
             ],
-            exclude : [/node_modules/, PATH.source('app.js')]
+            exclude : [/node_modules/, PATH.source('index.js')]
         },
         {test : /\.json$/, loader : 'json-loader'},
         {test : /\.css$/, loaders : ['to-string-loader', 'css-loader']},
@@ -87,7 +87,7 @@ module.exports = (process_env) => {
         }),
         new ExtractTextPlugin("app.css"),
         new webpack.DefinePlugin({
-            ENV : ENV.runtime
+            ENV : JSON.stringify(ENV.runtime)
         })
     ];
 

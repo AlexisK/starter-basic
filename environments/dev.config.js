@@ -5,6 +5,7 @@ module.exports = {
         devtool: 'source-map'
     },
     runtime: {
+        name: 'dev',
         api: '/api/'
     }
 };

@@ -1,10 +1,11 @@
 module.exports = {
-    name: 'stage',
+    name: 'prod',
     build: {
         compress: true,
         devtool: 'eval'
     },
     runtime: {
+        name: 'prod',
         api: '/api/'
     }
 };
