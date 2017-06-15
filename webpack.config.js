@@ -14,6 +14,7 @@ const CONST = {
 };
 
 const PATH = [
+    ['root', ''],
     ['source', CONST.dir_source],
     ['output', CONST.dir_output]
 ].reduce((acc, pair) => {
@@ -22,6 +23,13 @@ const PATH = [
 }, {});
 
 
+const proxyRules = {};
+
+const sassLoaders = [
+    'css-loader',
+    'sass-loader?includePaths[]=' + [PATH.source('app_styles', 'globals')]
+];
+
 // MAIN
 module.exports = (process_env) => {
 
@@ -29,15 +37,46 @@ module.exports = (process_env) => {
     const ENV = require('./environments/' + process_env.name + '.config.js');
     if ( !ENV ) { throw 'Environment ' + process_env.name + ' not exists'; }
 
+    const resolve = {
+        extensions : ['.js', '.json', '.scss'],
+        modules    : [PATH.source(), 'node_modules', 'app_modules'],
+        alias      : {
+            core : PATH.source('core')
+        }
+    };
+
     const loaders = [
         {
-            test: /\.scss$/,
-            loader: ExtractTextPlugin.extract({
-                fallbackLoader: 'style-loader',
-                loader: 'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!postcss-loader!sass-loader',
-            })
+            test    : /\.html$/,
+            loaders : [
+                'raw-loader',
+            ],
+            exclude : [/node_modules/, PATH.source('index.html')]
+        },
+        {
+            test    : /\.js$/,
+            loaders : [
+                // Babel is ES6+ converter to ES5
+                //'babel-loader?presets[]=es2015'
+            ],
+            exclude : [/node_modules/, PATH.source('app.js')]
+        },
+        {test : /\.json$/, loader : 'json-loader'},
+        {test : /\.css$/, loaders : ['to-string-loader', 'css-loader']},
+        {
+            test    : /\.scss$/,
+            loader  : ExtractTextPlugin.extract({
+                fallbackLoader : 'style-loader',
+                loader         : sassLoaders.join('!')
+            }),
+            exclude : /node_modules/,
+        },
+        {
+            test   : /\.(png|jpe?g|gif|svg|woff2?|ttf|eot|ico)$/,
+            loader : 'file?name=static/[name].[hash].[ext]?'
         }
     ];
+
 
     const plugins = [
         new webpack.NamedModulesPlugin(),
@@ -48,45 +87,59 @@ module.exports = (process_env) => {
         }),
         new ExtractTextPlugin("app.css"),
         new webpack.DefinePlugin({
-            ENV: ENV.runtime
+            ENV : ENV.runtime
         })
     ];
 
     if ( ENV.build.compress ) {
         plugins.push(new webpack.optimize.UglifyJsPlugin({
-            compress: {
-                warnings: false,
-                screw_ie8: true,
-                conditionals: true,
-                unused: true,
-                comparisons: true,
-                sequences: true,
-                dead_code: true,
-                evaluate: true,
-                if_return: true,
-                join_vars: true,
+            compress : {
+                warnings     : false,
+                screw_ie8    : true,
+                conditionals : true,
+                unused       : true,
+                comparisons  : true,
+                sequences    : true,
+                dead_code    : true,
+                evaluate     : true,
+                if_return    : true,
+                join_vars    : true,
             },
-            output: {
-                comments: false,
+            output   : {
+                comments : false,
             },
         }));
     }
 
 
     return {
-        devtool: ENV.build.devtool,
-        entry  : [
+        devtool   : ENV.build.devtool,
+        entry     : [
             PATH.source('index.js'),
             PATH.source('index.scss')
         ],
-        output : {
+        output    : {
             filename : 'app.js',
             path     : PATH.output()
         },
         plugins,
-        module: {
+        resolve,
+        module    : {
             loaders,
         },
+        devServer : {
+            host               : 'localhost',
+            port               : 3000,
+            //open: true,
+            inline             : true,
+            historyApiFallback : true,
+            watchOptions       : {
+                aggregateTimeout : 300,
+                poll             : 1000
+            },
+            proxy              : proxyRules,
+            compress           : true
+        }
     };
 };
 

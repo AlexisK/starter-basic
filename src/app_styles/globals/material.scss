@@ -1,0 +1,6 @@
+@import "colors";
+
+@mixin mat-card() {
+  padding: 40px;
+  box-shadow: 0 2px 5px $grey-2;
+}

@@ -1,0 +1,21 @@
+@import "globals";
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+div,
+input, textarea, button,
+img, a {
+  display: block;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: $font-primary;
+}
+
+// Declarations
+@import "layout";
+

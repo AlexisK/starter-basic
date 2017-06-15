@@ -1,0 +1,10 @@
+@import "globals";
+
+.wrapper {
+  width: $size-wrapper;
+  margin: 40px auto;
+}
+
+.card {
+  @include mat-card();
+}
