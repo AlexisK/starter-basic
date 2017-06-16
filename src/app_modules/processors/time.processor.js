@@ -1,9 +1,10 @@
-import { Processor } from 'core';
+import { Processor } from 'core/classes';
 
 export const TimeProcessor = new Processor({
     name    : 'time',
     init    : (self, node) => node.value = node.textContent,
     process : (self, node) => {
-        node.textContent = new Date(node.value)
+        var date = new Date(node.value);
+        node.textContent = [date.getDate(), date.getMonth()+1, date.getFullYear()].join('/')
     }
 });

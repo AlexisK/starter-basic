@@ -1,6 +1,46 @@
 @import "colors";
 
+@mixin mat-shadow() {
+  box-shadow: 0 2px 5px $grey-2;
+}
+
+@mixin mat-link() {
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    color: $color-secondary;
+  }
+}
+
+@mixin mat-label() {
+  padding: 1px 2px;
+  background-color: $color-primary;
+  color: white;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+@mixin mat-text-inside() {
+  h1, h2, h3, h4, p {
+    color: $grey-4;
+    margin: 1em 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+  small {
+    @include mat-label();
+  }
+  a {
+    @include mat-link();
+  }
+}
+
 @mixin mat-card() {
   padding: 40px;
-  box-shadow: 0 2px 5px $grey-2;
+  background-color: white;
+  @include mat-shadow();
+  @include mat-text-inside();
 }

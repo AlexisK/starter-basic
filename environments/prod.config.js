@@ -1,5 +1,4 @@
 module.exports = {
-    name: 'prod',
     build: {
         compress: true,
         devtool: 'eval'

@@ -6,6 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
+const pagesConfig = require('./src/pages.config');
 
 // SETTINGS
 const CONST = {
@@ -80,15 +81,17 @@ module.exports = (process_env) => {
 
     const plugins = [
         new webpack.NamedModulesPlugin(),
-        new HtmlWebpackPlugin({
-            template : PATH.source('index.html'),
-            path     : PATH.output(),
-            filename : 'index.html',
-        }),
         new ExtractTextPlugin("app.css"),
         new webpack.DefinePlugin({
             ENV : JSON.stringify(ENV.runtime)
-        })
+        }),
+
+        ...pagesConfig.pages.map(fileName => new HtmlWebpackPlugin({
+                template : PATH.source(pagesConfig.directory, fileName),
+                path     : PATH.output(),
+                filename : fileName,
+            })
+        )
     ];
 
     if ( ENV.build.compress ) {
@@ -132,7 +135,7 @@ module.exports = (process_env) => {
             port               : 3000,
             //open: true,
             inline             : true,
-            historyApiFallback : true,
+            //historyApiFallback : true,
             watchOptions       : {
                 aggregateTimeout : 300,
                 poll             : 1000

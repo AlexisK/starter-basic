@@ -6,7 +6,9 @@ $grey-5: #333;
 
 $red-1: #ff524b;
 $green-1: #59cb37;
-$blue-1: #60caff;
+$blue-1: #3590ce;
+
+$color-back: $grey-5;
 
 $color-primary: $blue-1;
-$color-secondary: rgba($blue-1, .6);
+$color-secondary: mix($blue-1, $color-back, 80%);

@@ -5,6 +5,10 @@
   padding: 0;
 }
 
+html, body {
+  height: 100%;
+}
+
 div,
 input, textarea, button,
 img, a {
@@ -13,7 +17,7 @@ img, a {
 }
 
 body {
-  font-family: $font-primary;
+  font: $font-primary;
 }
 
 // Declarations
