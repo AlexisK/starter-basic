@@ -10,10 +10,11 @@ function PopupService() {
 
     self.init = function () {
         self.popUpWrapperElement = document.getElementsByClassName(SELECTORPOPUP)[0];
+        self.currentPopup        = null;
         self.closePopupIntrerval = null;
-        self.popUpWrapperElement.addEventListener('click', function() {
+        self.popUpWrapperElement.addEventListener('click', function () {
             clearInterval(self.closePopupIntrerval);
-            self.closePopupIntrerval = setTimeout(function() {
+            self.closePopupIntrerval = setTimeout(function () {
                 delete url.query.popup;
             }, 10);
         });
@@ -26,18 +27,20 @@ function PopupService() {
     self.handlePopup = function () {
         if ( !self.popUpWrapperElement ) { return null; }
 
-        if ( url.query.popup ) {
+        if ( url.query.popup && (self.currentPopup != url.query.popup) ) {
+            self.currentPopup = url.query.popup;
             routing.requestPage(url.query.popup, null, result => {
+
                 var tempNode       = document.createElement('div');
                 tempNode.innerHTML = result;
 
                 var dataAnchors = anchors.retrieveAnchors(tempNode);
                 if ( dataAnchors[CONTENTANCHOR] && dataAnchors[CONTENTANCHOR][0] ) {
-                    var newDataContainer = document.createElement('div');
-                    newDataContainer.className='container';
+                    var newDataContainer       = document.createElement('div');
+                    newDataContainer.className = 'container';
                     self.popUpWrapperElement.appendChild(newDataContainer);
-                    newDataContainer.addEventListener('click', function() {
-                        setTimeout(function() {
+                    newDataContainer.addEventListener('click', function () {
+                        setTimeout(function () {
                             clearInterval(self.closePopupIntrerval);
                         }, 1);
                     });
@@ -47,6 +50,7 @@ function PopupService() {
                 }
             });
         } else {
+            self.currentPopup = null;
             anchors.clear(self.popUpWrapperElement);
             self.popUpWrapperElement.classList.add('hidden');
         }
