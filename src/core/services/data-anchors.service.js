@@ -25,7 +25,7 @@ function DataAnchorsService() {
     self.updateAnchorWithElement = function (target, newElement) {
         if ( target._fetchEmpty || newElement.firstChild ) {
             newElement = newElement.cloneNode(true);
-            renderer.clear(target);
+            self.clear(target);
             while (newElement.firstChild) {
                 target.appendChild(newElement.firstChild);
             }
@@ -33,6 +33,10 @@ function DataAnchorsService() {
         }
     };
 
+    self.clear = function(target) {
+        return renderer.clear(target);
+    };
+
 }
 
-export const dataAnchorsService = new DataAnchorsService();
+export var dataAnchorsService = new DataAnchorsService();

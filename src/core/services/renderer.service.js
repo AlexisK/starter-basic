@@ -1,6 +1,6 @@
 import * as processors from 'app_modules/processors';
 
-const processorByName = Object.keys(processors).reduce((acc, key) => {
+var processorByName = Object.keys(processors).reduce((acc, key) => {
     var processor       = processors[key];
     acc[processor.name] = processor;
     return acc;
@@ -51,4 +51,4 @@ function RendererService() {
     };
 }
 
-export const rendererService = new RendererService();
+export var rendererService = new RendererService();

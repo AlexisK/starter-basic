@@ -3,6 +3,7 @@ module.exports = {
     pages: [
         'index.html',
         'test-page.html',
-        'block-authorized-toolbar.html'
+        'block-authorized-toolbar.html',
+        'popup-demo-content.html'
     ]
 };

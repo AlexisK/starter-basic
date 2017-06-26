@@ -98,3 +98,16 @@ footer {
     margin: 0 auto;
   }
 }
+
+.popup-wrapper {
+  position: fixed;
+  top: 40px; right: 0; bottom: 0; left: 0;
+  overflow: auto;
+  background-color: rgba($grey-2, 0.5);
+
+  .container {
+    max-width: 600px;
+    margin: 40px auto;
+    @include mat-card();
+  }
+}

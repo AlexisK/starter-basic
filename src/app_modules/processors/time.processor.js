@@ -1,6 +1,6 @@
 import { Processor } from 'core/classes';
 
-export const TimeProcessor = new Processor({
+export var TimeProcessor = new Processor({
     name    : 'time',
     init    : (self, node) => node.value = node.textContent,
     process : (self, node) => {
