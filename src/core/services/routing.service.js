@@ -1,5 +1,7 @@
 import { forEach } from 'core/helpers';
-import { rendererService as renderer } from 'core/services';
+import { dataAnchorsService as anchors } from './data-anchors.service';
+
+const TITLEANCHOR = 'title';
 
 function RoutingService() {
     var self = this;
@@ -23,36 +25,6 @@ function RoutingService() {
         oReq.send();
     };
 
-    self._retrieveCandidates = function (target) {
-        return Array.prototype.reduce.call(target.querySelectorAll('[data-anchor]'), (acc, node) => {
-            var key  = node.getAttribute('data-anchor');
-            acc[key] = acc[key] || [];
-            acc[key].push(node);
-            node._fetchEmpty = (node.getAttribute('data-anchor-fetchempty') === 'true');
-            return acc;
-        }, {});
-    };
-
-    self._updateCandidate = function (toUpdate, newCandidate) {
-        if ( toUpdate._fetchEmpty || newCandidate.children.length ) {
-            renderer.clear(toUpdate);
-            toUpdate.innerHTML = newCandidate.innerHTML;
-            // Solution without using `innerHTML` however - it alters `newCandidate`
-            //while (newCandidate.firstChild) {
-            //    toUpdate.appendChild(newCandidate.firstChild);
-            //}
-            renderer.process(toUpdate);
-        }
-    };
-
-    self._updateCandidates = function (toUpdate, newCandidates) {
-        forEach(newCandidates, (nodes, key) => {
-            if ( toUpdate[key] ) {
-                toUpdate[key].forEach((element, i) => self._updateCandidate(element, nodes[i] || nodes[nodes.length-1]));
-            }
-        })
-    };
-
     self._pushHistory = function (url, title) {
         history.pushState({
             url
@@ -60,25 +32,25 @@ function RoutingService() {
     };
 
     self.goSilent = function (path, params, cb) {
-        console.log('Routing.navigate', path, params);
 
         self._requestPage(path, null, result => {
             var tempNode       = document.createElement('div');
             tempNode.innerHTML = result;
 
-            var pageCandidates = self._retrieveCandidates(document);
-            var dataCandidates = self._retrieveCandidates(tempNode);
-            this._updateCandidates(pageCandidates, dataCandidates);
+            var pageAnchors = anchors.retrieveAnchors(document);
+            var dataAnchors = anchors.retrieveAnchors(tempNode);
+            anchors.updateAnchorsWithElements(pageAnchors, dataAnchors);
 
             if ( cb ) {
-                cb({path, params, pageCandidates, dataCandidates});
+                cb({path, params, pageAnchors, dataAnchors});
             }
         });
     };
 
     self.go = self.navigate = function (path, params, cb) {
+        console.log('Routing.navigate', path, params);
         self.goSilent(path, params, results => {
-            self._pushHistory(results.path, results.dataCandidates.title);
+            self._pushHistory(results.path, results.dataAnchors[TITLEANCHOR][0].textContent);
 
             if ( cb ) {
                 cb(results);
