@@ -1,7 +1,6 @@
 import { dataAnchorsService as anchors } from './data-anchors.service';
 import { routingService as routing } from './routing.service';
 import { urlService as url } from './url.service';
-window['url'] = url;
 
 var CONTENTANCHOR = 'main-content';
 var SELECTORPOPUP = 'popup-wrapper';
