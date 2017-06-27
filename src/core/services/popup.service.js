@@ -18,9 +18,9 @@ function PopupService() {
                 delete url.query.popup;
             }, 10);
         });
-        self.handlePopup();
+        self.handlePopup(url);
 
-        url.events.change.push(self.handlePopup);
+        url.events.subscribe('change.query', self.handlePopup);
     };
 
 

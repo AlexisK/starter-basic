@@ -1,10 +1,10 @@
+import { EventManager } from 'core/classes';
+
 function UrlService() {
     var self = this;
 
     self.init = function() {
-        self.events = {
-            change: []
-        };
+        self.events = new EventManager();
         self._updateInterval = null;
     };
 
@@ -42,7 +42,10 @@ function UrlService() {
                 url: newUrl
             }, '', newUrl);
 
-            self.events.change.forEach(function(todo) { todo(newUrl); });
+            self.events.emit('change.query', {
+                url: newUrl,
+                query: data
+            });
         }
     };
 
