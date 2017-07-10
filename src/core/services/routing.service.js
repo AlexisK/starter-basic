@@ -78,7 +78,7 @@ function RoutingService() {
 
     self.navigate = function (path, params, cb) {
         console.log('Routing.navigate', path, params);
-        self.goSilent(path, params, results => {
+        self.goBasic(path, params, results => {
             self._pushHistory(results.path, results.dataAnchors[TITLEANCHOR][0].textContent);
 
             self.events.emit('go.navigate', path, params);
