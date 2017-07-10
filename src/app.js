@@ -1,9 +1,5 @@
-import { rendererService as renderer } from 'core/services';
-
 export function App() {
-    var self = this;
+    this.init = function() {
 
-    self.init = function() {
-        renderer.process(document.body);
     }
 }
