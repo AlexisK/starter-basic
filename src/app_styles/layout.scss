@@ -1,5 +1,7 @@
 @import "globals";
 
+
+// general
 body {
   display: flex;
   flex-direction: column;
@@ -16,6 +18,26 @@ body {
   margin: 40px auto;
 }
 
+input, textarea, select {
+  outline: none;
+}
+
+
+// rows, cols
+.row, .col {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+.row {
+  flex-direction: row;
+}
+.col {
+  flex-direction: column;
+}
+
+
+// cards
 .card {
   @include mat-card();
 
@@ -37,6 +59,8 @@ body {
   }
 }
 
+
+// toolbar
 .toolbar {
   position: fixed;
   top: 0; right: 0; left: 0;
@@ -90,6 +114,8 @@ body {
   }
 }
 
+
+// footer
 footer {
   min-height: 40px;
   background-color: $grey-2;

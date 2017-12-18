@@ -1,8 +1,9 @@
-export function EventManager() {
-    var self = this;
-    self.actions = {};
+export class EventManager {
+    constructor() {
+        this.actions = {};
+    }
 
-    self._iterateEvent = function(event, cb) {
+    _iterateEvent(event, cb) {
         if ( typeof(event) == 'string' ) {
             event = event.split('.');
         }
@@ -13,32 +14,32 @@ export function EventManager() {
         }
     };
 
-    self.subscribe = function (event, action) {
-        self._iterateEvent(event, function(key) {
-            self.actions[key] = self.actions[key] || [];
-            self.actions[key].push(action);
+    subscribe(event, action) {
+        this._iterateEvent(event, (key) => {
+            this.actions[key] = this.actions[key] || [];
+            this.actions[key].push(action);
         });
         return function() {
-            self.unsubscribe(event, action);
+            this.unsubscribe(event, action);
         }
     };
 
-    self.unsubscribe = function (event, action) {
-        self._iterateEvent(event, function(key) {
-            if ( self.actions[key] ) {
-                var ind = self.actions[key].indexOf(action);
+    unsubscribe(event, action) {
+        this._iterateEvent(event, (key) => {
+            if ( this.actions[key] ) {
+                var ind = this.actions[key].indexOf(action);
                 if ( ind >= 0 ) {
-                    self.actions[key].splice(ind, 1);
+                    this.actions[key].splice(ind, 1);
                 }
             }
         });
     };
 
-    self.emit = function() {
+    emit() {
         var event = Array.prototype.shift.call(arguments);
-        self._iterateEvent(event, function(key) {
-            if ( self.actions[key] ) {
-                self.actions[key].forEach(function(action) { action.apply(this, arguments); })
+        this._iterateEvent(event, (key) => {
+            if ( this.actions[key] ) {
+                this.actions[key].forEach(function(action) { action.apply(this, arguments); })
             }
         });
     };

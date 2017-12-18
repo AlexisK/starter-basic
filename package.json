@@ -1,46 +1,46 @@
 {
-  "name"            : "starter-basic",
-  "version"         : "0.2.0",
-  "description"     : "Basic JS + CSS starter",
-  "main"            : "index.js",
-  "scripts"         : {
-    "test"        : "echo \"Error: no test specified\" && exit 1",
-    "start"       : "npm run serve:dev",
-    "build"       : "echo 'npm run build:[env]\ndev/stage/prod'",
-    "build:dev"   : "webpack --config ./webpack.config.js --env.name dev",
-    "build:stage" : "webpack --config ./webpack.config.js --env.name stage",
-    "build:prod"  : "webpack --config ./webpack.config.js --env.name prod",
-    "serve"       : "echo 'npm run serve:[env]\ndev/stage/prod'",
-    "serve:dev"   : "webpack-dev-server --env.name dev --watch --content-base dist/",
-    "serve:stage" : "webpack-dev-server --env.name stage --watch --content-base dist/",
-    "serve:prod"  : "webpack-dev-server --env.name prod --watch --content-base dist/"
+  "name": "starter-basic",
+  "version": "0.2.0",
+  "description": "Basic JS + CSS starter",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run serve:dev",
+    "build": "echo 'npm run build:[env]\ndev/stage/prod'",
+    "build:dev": "webpack --config ./webpack.config.js --env.name dev",
+    "build:stage": "webpack --config ./webpack.config.js --env.name stage",
+    "build:prod": "webpack --config ./webpack.config.js --env.name prod",
+    "serve": "echo 'npm run serve:[env]\ndev/stage/prod'",
+    "serve:dev": "webpack-dev-server --env.name dev --watch --content-base dist/",
+    "serve:stage": "webpack-dev-server --env.name stage --watch --content-base dist/",
+    "serve:prod": "webpack-dev-server --env.name prod --watch --content-base dist/"
   },
-  "repository"      : {
-    "type" : "git",
-    "url"  : "git+https://github.com/AlexisK/starter-basic.git"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexisK/starter-basic.git"
   },
-  "keywords"        : [
+  "keywords": [
     "javascript",
     "css",
     "sass",
     "webpack"
   ],
-  "author"          : "AlexisK",
-  "license"         : "ISC",
-  "bugs"            : {
-    "url" : "https://github.com/AlexisK/starter-basic/issues"
+  "author": "AlexisK",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlexisK/starter-basic/issues"
   },
-  "homepage"        : "https://github.com/AlexisK/starter-basic#readme",
-  "devDependencies" : {
-    "copy-webpack-plugin"         : "4.0.1",
-    "css-loader"                  : "0.28.4",
-    "extract-text-webpack-plugin" : "2.1.2",
-    "html-webpack-plugin"         : "2.28.0",
-    "node-sass"                   : "4.5.3",
-    "raw-loader"                  : "0.5.1",
-    "sass-loader"                 : "6.0.6",
-    "style-loader"                : "0.18.2",
-    "webpack"                     : "2.6.1",
-    "webpack-dev-server"          : "1.16.5"
+  "homepage": "https://github.com/AlexisK/starter-basic#readme",
+  "devDependencies": {
+    "copy-webpack-plugin": "4.0.1",
+    "css-loader": "0.28.4",
+    "extract-text-webpack-plugin": "2.1.2",
+    "html-webpack-plugin": "2.28.0",
+    "node-sass": "4.5.3",
+    "raw-loader": "0.5.1",
+    "sass-loader": "6.0.6",
+    "style-loader": "0.18.2",
+    "webpack": "2.6.1",
+    "webpack-dev-server": "1.16.5"
   }
 }
