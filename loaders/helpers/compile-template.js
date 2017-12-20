@@ -35,7 +35,7 @@ function checkFor(obj) {
   if (obj.attribs && obj.attribs[STR.checkFor]) {
     obj._for = obj.attribs[STR.checkFor].split(' in ');
     obj._for[1] = breakExpression(obj._for[1]);
-    obj._bindFor = getBindingsVarsFromExpr(obj._for[1]);
+    obj._forVars = getBindingsVarsFromExpr(obj._for[1]);
     delete obj.attribs[STR.checkFor];
   }
 }
@@ -43,8 +43,15 @@ function checkFor(obj) {
 function checkIf(obj) {
   if (obj.attribs && obj.attribs[STR.checkIf]) {
     obj._if = breakExpression(obj.attribs[STR.checkIf]);
-    obj._bindIf = getBindingsVarsFromExpr(obj._if);
+    obj._ifVars = getBindingsVarsFromExpr(obj._if);
     delete obj.attribs[STR.checkIf];
+  }
+}
+
+function checkRef(obj) {
+  if (obj.attribs && obj.attribs[STR.checkRef]) {
+    obj._ref = obj.attribs[STR.checkRef];
+    delete obj.attribs[STR.checkRef];
   }
 }
 
@@ -240,6 +247,7 @@ function nodesToString(obj, params) {
       ref.type = 2;
       checkIf(ref);
       checkFor(ref);
+      checkRef(ref);
       if (knownSelectors.indexOf(ref.name) >= 0) {
         ref._componentSelector = ref.name;
       }
@@ -266,7 +274,7 @@ module.exports = function (html, params) {
   let parsed = nodesToString(removeCircularDeps(HL.Node.fromString(html)), params);
 
   //console.log('--TPL:\n\n', html, '\n');
-  // console.log('--NODE:\n\n', parsed, '\n');
+  //console.log('--NODE:\n\n', parsed, '\n');
 
   //return utils.formatStr(html);
   return parsed;

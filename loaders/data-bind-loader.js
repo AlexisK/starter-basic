@@ -5,7 +5,7 @@ const utils = require("./helpers/utils");
 const compileTemplate = require('./helpers/compile-template');
 const { updateMethodInds } = require('./config');
 
-const reTemplateAll = /@(Component)\(({[\s\d\w:'",.\/\-_=+~\[\]]+})?\)\s*(?:export)?\s+class\s+([\w\d_]+)\s*\{([\s\d\w:'";,.\/\-_=+~(){}[\]]*)}\s*$/igm;
+const reTemplateAll = /@(Component)\(({[\s\d\w:'",.\/\-_=+~\[\]]+})?\)\s*(?:export)?\s+class\s+([\w\d_]+)\s*\{([\s\d\w:'";,.\/\-_=+~(){}[\]<>]*)}\s*$/igm;
 const reTemplateKey = /@Component\({[\s\w\d:'",.\-/\\]+selector\s*:\s*'([\s\w\d\-[\]./\\]+)'/gi;
 const reConstructor = /constructor\(([\s\w\d_{}\[\],]*)\)\s*\{/;
 

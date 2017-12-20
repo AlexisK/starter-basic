@@ -1,0 +1,14 @@
+<div class="app-todo-list">
+  <ul>
+    <li *for="pair in data" class="item">
+      <input type="checkbox" [checked]="pair.0" (change)="pair.0 = $event.target.checked" />
+      <strong>{{pair.1}}</strong>
+      <input type="checkbox" disabled [checked]="pair.0" />
+      <button (click)="removeOption(pair)">x</button>
+    </li>
+  </ul>
+  <div class="add-block">
+    <input type="text" placeholder="new option" [value]="inputValue" (keyup)="onKeyUp($event)" *ref="inputNode" />
+    <button (click)="addOption(inputValue)">add [{{inputValue}}]</button>
+  </div>
+</div>

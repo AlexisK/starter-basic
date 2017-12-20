@@ -1,17 +1,25 @@
 import { evalRenderMap, evalExpression } from '../utils/eval-expression';
+import { componentsRendererService } from '../services/components-renderer.service';
 
 const attributesMapping = {
   class: 'className'
 };
 
+const attributesWithoutValue = {
+  disabled: true,
+  checked: true
+}
+
 export class ComponentRenderSession {
   constructor(componentInstance, parent) {
     this.parent = parent;
     this.componentInstance = componentInstance;
-    this.evalRenderMap = evalRenderMap.bind(this.componentInstance);
-    this.evalExpression = evalExpression.bind(this.componentInstance);
     this.refreshWorkers = {};
-    this.componentInstance['$event'] = new Event(null);
+
+    this.ctx = {};
+    this.ctx.__proto__ = this.componentInstance;
+    this.evalRenderMap = evalRenderMap.bind(this.ctx);
+    this.evalExpression = evalExpression.bind(this.ctx);
 
     this.componentInstance.refresh = () => this.refresh();
 
@@ -26,7 +34,6 @@ export class ComponentRenderSession {
 
   destructor() {
     this.clearTemplate();
-    delete this.componentInstance['$event'];
     delete this.componentInstance.refresh;
   }
 
@@ -45,7 +52,14 @@ export class ComponentRenderSession {
     this.refreshWorkers[varName].push(worker);
   }
 
+  copyContext() {
+    let ctxCopy = Object.assign({}, this.ctx);
+    ctxCopy.__proto__ = this.ctx;
+    return ctxCopy;
+  }
+
   clearTemplate() {
+    componentsRendererService.clear(this.parent);
     this.refreshWorkers = {};
     let target;
     while (target = this.parent.firstChild) {
@@ -56,6 +70,7 @@ export class ComponentRenderSession {
   renderTemplate() {
     this.clearTemplate();
     this.parent.appendChild(this.render(this.componentInstance.__template));
+    componentsRendererService.process(this.parent);
     // console.log(this.componentInstance.__template);
   }
 
@@ -67,7 +82,36 @@ export class ComponentRenderSession {
         result.appendChild(this.render(rule));
       });
     } else if (template.type && this._renderBinding[template.type]) {
-      result.appendChild(this._renderBinding[template.type](template));
+
+      if (template._for) {
+        let [varName, expr] = template._for;
+        let anchor = this.createAnchor(result);
+
+        anchor.items = [];
+        let worker = () => {
+          let list = this.evalExpression(expr);
+
+          anchor.items.forEach(node => {
+            componentsRendererService.clear(node);
+            node.parentNode ? node.parentNode.removeChild(node) : null;
+          });
+          anchor.items = [];
+
+          list.forEach(item => {
+            this.ctx[varName] = item;
+            let newItem = this._renderBinding[template.type](template);
+            anchor.items.push(newItem);
+            anchor.parentNode ? anchor.parentNode.insertBefore(newItem, anchor) : null;
+          });
+          delete this.ctx[varName];
+        }
+
+        template._forVars.forEach(varName => this.registerWorker(varName, worker));
+        worker();
+      } else {
+        result.appendChild(this._renderBinding[template.type](template));
+      }
+
     } else {
       console.log('Failed to render template', { template, ctx });
     }
@@ -77,8 +121,9 @@ export class ComponentRenderSession {
   _render_text(template) {
     if (template._renderMap) {
       let newNode = document.createTextNode('');
-      let worker = () => newNode.textContent = this.evalRenderMap(template._renderMap);
+      let worker = () => newNode.textContent = this.evalRenderMap(template._renderMap, newNode._ctx);
 
+      newNode._ctx = this.copyContext();
       template._renderVars.forEach(varName => this.registerWorker(varName, worker));
       worker();
 
@@ -89,14 +134,20 @@ export class ComponentRenderSession {
 
   _render_tag(template) {
     let newNode = this._render_element(template);
+    let needContextCopy = false;
+
+    if (template._ref) {
+      this.componentInstance[template._ref] = newNode;
+    }
 
     if (template._inputs) {
+      needContextCopy = true;
       for (let attr in template._inputs) {
         let expr = template._inputs[attr];
 
         let worker = () => {
           if (!(document.activeElement === newNode && attr === 'value')) {
-            newNode[attributesMapping[attr] || attr] = this.evalExpression(expr);
+            newNode[attributesMapping[attr] || attr] = this.evalExpression(expr, newNode._ctx);
           }
         }
 
@@ -106,15 +157,21 @@ export class ComponentRenderSession {
     }
 
     if (template._bindings) {
+      needContextCopy = true;
       for (let eventName in template._bindings) {
         let expr = template._bindings[eventName];
 
         newNode.addEventListener(eventName, ev => {
-          this.componentInstance['$event'] = ev;
-          this.evalExpression(expr);
+          (newNode._ctx || this.ctx)['$event'] = ev;
+          this.evalExpression(expr, newNode._ctx);
+          delete this.ctx['$event'];
           template._bindVars[eventName].forEach(varName => this.refresh(varName));
         });
       }
+    }
+
+    if (needContextCopy) {
+      newNode._ctx = this.copyContext();
     }
 
     if (template.children) {
@@ -141,7 +198,9 @@ export class ComponentRenderSession {
 
       template.attribs.forEach(pair => {
         newNode.setAttribute(pair[0], pair[1]);
-        newNode[pair[0]] = pair[1];
+        if (pair[1] || !attributesWithoutValue[pair[0]]) {
+          newNode[pair[0]] = pair[1];
+        }
       });
     }
     return newNode;
