@@ -1,5 +1,6 @@
 import { evalRenderMap, evalExpression } from '../utils/eval-expression';
 import { componentsRendererService } from '../services/components-renderer.service';
+import { lazyTimeframe, runLazy } from '../utils/lazy-balancer';
 
 const attributesMapping = {
   class: 'className'
@@ -9,6 +10,7 @@ const attributesWithoutValue = {
   disabled: true,
   checked: true
 }
+
 
 export class ComponentRenderSession {
   constructor(componentInstance, parent) {
@@ -29,7 +31,7 @@ export class ComponentRenderSession {
       this._render_tag.bind(this)
     ];
 
-    this.renderTemplate();
+    setTimeout(() => this.renderTemplate(), 1);
   }
 
   destructor() {
@@ -87,26 +89,64 @@ export class ComponentRenderSession {
         let [varName, expr] = template._for;
         let anchor = this.createAnchor(result);
 
-        anchor.items = [];
+        anchor._renderedItems = [];
+        let stopBalancer = () => { };
         let worker = () => {
           let list = this.evalExpression(expr);
 
-          anchor.items.forEach(node => {
+          anchor._renderedItems.forEach(node => {
             componentsRendererService.clear(node);
             node.parentNode ? node.parentNode.removeChild(node) : null;
           });
-          anchor.items = [];
+          anchor._renderedItems = [];
 
-          list.forEach(item => {
+          // let domBundle = document.createDocumentFragment();
+
+          let index = 0;
+          let lazyWorker = () => {
+            let item = list[index];
             this.ctx[varName] = item;
             let newItem = this._renderBinding[template.type](template);
-            anchor.items.push(newItem);
+            anchor._renderedItems.push(newItem);
+            // domBundle.appendChild(newItem, anchor);
             anchor.parentNode ? anchor.parentNode.insertBefore(newItem, anchor) : null;
-          });
-          delete this.ctx[varName];
+            index++;
+            return index < list.length;
+          }
+
+          stopBalancer();
+          stopBalancer = runLazy(lazyWorker);
+          // list.forEach(item => {
+          //   this.ctx[varName] = item;
+          //   let newItem = this._renderBinding[template.type](template);
+          //   anchor._renderedItems.push(newItem);
+          //   domBundle.appendChild(newItem, anchor);
+          // });
+          // delete this.ctx[varName];
+          // anchor.parentNode ? anchor.parentNode.insertBefore(domBundle, anchor) : null;
         }
 
         template._forVars.forEach(varName => this.registerWorker(varName, worker));
+        worker();
+      } else if (template._if) {
+        let expr = template._if;
+        let anchor = this.createAnchor(result);
+
+        anchor._renderedItem = null;
+        let worker = () => {
+          if (this.evalExpression(expr)) {
+            if (!anchor._renderedItem) {
+              anchor._renderedItem = this._renderBinding[template.type](template);
+              anchor.parentNode ? anchor.parentNode.insertBefore(anchor._renderedItem, anchor) : null;
+            }
+          } else if (anchor._renderedItem) {
+            componentsRendererService.clear(anchor._renderedItem);
+            anchor._renderedItem.parentNode ? anchor._renderedItem.parentNode.removeChild(anchor._renderedItem) : null;
+            anchor._renderedItem = null;
+          }
+        }
+        
+        template._ifVars.forEach(varName => this.registerWorker(varName, worker));
         worker();
       } else {
         result.appendChild(this._renderBinding[template.type](template));

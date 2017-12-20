@@ -10,11 +10,13 @@ export class TodoListComponent {
   constructor() {
     this.inputNode = null;
     this.inputValue = '';
+    this.stressTestString = '';
 
     this.data = [
       [true, 'Option 1'],
       [false, 'Option 2'],
       [false, 'Option 3'],
+      ...new Array(1000).fill().map((v, k) => [false, k])
     ]
   }
 
