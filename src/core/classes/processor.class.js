@@ -7,9 +7,9 @@ export class Processor {
 
     this.id = IdService.getId();
     this.name = params.name || this.id;
-    this.init = params.init || (() => {});
-    this.process = params.process || (() => {});
-    this.destroy = params.destroy || (() => {});
+    this.init = params.init || (() => { });
+    this.process = params.process || (() => { });
+    this.destroy = params.destroy || (() => { });
   }
   preInit(instance, params) {
     instance._destroyWorkers = instance._destroyWorkers || [];

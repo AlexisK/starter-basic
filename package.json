@@ -36,10 +36,12 @@
     "css-loader": "0.28.4",
     "extract-text-webpack-plugin": "2.1.2",
     "html-webpack-plugin": "2.28.0",
+    "node-html-light": "^1.0.0",
     "node-sass": "4.5.3",
     "raw-loader": "0.5.1",
     "sass-loader": "6.0.6",
     "style-loader": "0.18.2",
+    "tosource": "^1.0.0",
     "webpack": "2.6.1",
     "webpack-dev-server": "1.16.5"
   }

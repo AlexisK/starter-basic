@@ -4,6 +4,6 @@ export function App() {
     var self = this;
 
     self.init = function() {
-        renderer.process(document.body);
+      renderer.process(document.body);
     }
 }

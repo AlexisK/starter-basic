@@ -1,3 +1,22 @@
 <div class="app-test-component">
   <h1>Test Component Success!</h1>
+  <table>
+    <tbody>
+      <tr>
+        <td>$event:</td>
+        <td>{{$event.target.tagName}}</td>
+      </tr>
+      <tr>
+        <td>str:</td>
+        <td>{{str}}</td>
+      </tr>
+      <tr>
+        <td>x:</td>
+        <td>{{x}}</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>{{str}}</h2>
+  <input [value]="str" (keyup)="str = $event.target.value" placeholder="str" />
+  <input [value]="x" (keyup)="x = $event.target.value" placeholder="x" />
 </div>
