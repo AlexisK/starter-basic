@@ -1,10 +1,9 @@
 import { forEach } from 'core/helpers';
 import { rendererService as renderer } from 'core/services';
 
-function DataAnchorsService() {
-    var self = this;
-
-    self.retrieveAnchors = function (target) {
+export class DataAnchorsService {
+    
+    retrieveAnchors(target) {
         return Array.prototype.reduce.call(target.querySelectorAll('[data-anchor]'), (acc, node) => {
             var key  = node.getAttribute('data-anchor');
             acc[key] = acc[key] || [];
@@ -14,23 +13,27 @@ function DataAnchorsService() {
         }, {});
     };
 
-    self.updateAnchorsWithElements = function (currentAnchors, newAnchors) {
+    updateAnchorsWithElements(currentAnchors, newAnchors) {
         forEach(newAnchors, (nodes, key) => {
             if ( currentAnchors[key] ) {
-                currentAnchors[key].forEach((element, i) => self.updateAnchorWithElement(element, nodes[i] || nodes[nodes.length-1]));
+                currentAnchors[key].forEach((element, i) => this.updateAnchorWithElement(element, nodes[i] || nodes[nodes.length-1]));
             }
         })
     };
 
-    self.updateAnchorWithElement = function (target, newElement) {
+    updateAnchorWithElement(target, newElement) {
         if ( target._fetchEmpty || newElement.firstChild ) {
             newElement = newElement.cloneNode(true);
-            renderer.clear(target);
+            this.clear(target);
             while (newElement.firstChild) {
                 target.appendChild(newElement.firstChild);
             }
             renderer.process(target);
         }
+    };
+
+    clear(target) {
+        return renderer.clear(target);
     };
 
 }

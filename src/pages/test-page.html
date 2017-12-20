@@ -8,13 +8,13 @@
         <nav>
             <a data-processors="link" href="index.html">Home</a>
             <a data-processors="link" href="test-page.html">Test page</a>
-            <a data-processors="link"
-               data-processor-link='{"history": false}'
-               href="block-authorized-toolbar.html">Retrieve profile</a>
+            <a data-processors="link" href="?popup=test-page.html">Test page in popup</a>
+            <a data-processors="link-silent" href="block-authorized-toolbar.html">Retrieve profile</a>
         </nav>
         <div data-anchor="toolbar-profile"></div>
     </div>
 </div>
+<div class="popup-wrapper"></div>
 <div class="main-content">
     <div class="wrapper card" data-anchor="main-content">
         <header>
@@ -52,6 +52,11 @@
                 binding several wax tablets together (Roman pugillares) is a possible precursor for modern books (i.e.
                 codex).[6] The etymology of the word codex (block of wood) also suggests that it may have developed from
                 wooden wax tablets.</p>
+        </article>
+        <br />
+        <article>
+            <h3>Testing components:</h3>
+            <div data-processors="test-component"></div>
         </article>
         <br />
         <article>

@@ -3,14 +3,14 @@ import { routingService as routing } from 'core/services';
 
 export const DynamicLinkProcessor = new Processor({
     name: 'link',
-    init: (self, node, params) => {
-        node.onclick = ev => {
+    init: (self, params) => {
+        self.node.onclick = ev => {
             ev.preventDefault();
             ev.stopPropagation();
             if ( params && params.history === false ) {
-                routing.goSilent(node.href);
+                routing.goSilent(self.node.href);
             } else {
-                routing.navigate(node.href);
+                routing.navigate(self.node.href);
             }
         }
     }

@@ -8,17 +8,17 @@
         <nav>
             <a data-processors="link" href="index.html">Home</a>
             <a data-processors="link" href="test-page.html">Test page</a>
-            <a data-processors="link"
-               data-processor-link='{"history": false}'
-               href="block-authorized-toolbar.html">Retrieve profile</a>
+            <a data-processors="link" href="?popup=test-page.html">Test page in popup</a>
+            <a data-processors="link-silent" href="block-authorized-toolbar.html">Retrieve profile</a>
         </nav>
         <div data-anchor="toolbar-profile"></div>
     </div>
 </div>
+<div class="popup-wrapper"></div>
 <div class="main-content">
     <div class="wrapper card" data-anchor="main-content">
         <header>
-            <h1>AlexisK starter</h1>
+            <h1>Starter Kit</h1>
         </header>
         <article>
             <p>A book is a set of sheets of paper, parchment, or similar materials that are fastened together to hinge
@@ -51,6 +51,7 @@
             <nav>
                 <a href="/?v=native">Link native</a>
                 <a href="/?v=dynamic" data-processors="link">Link dynamic</a>
+                <a href="?popup=popup-demo-content.html" data-processors="link">Open popup</a>
             </nav>
         </article>
     </div>

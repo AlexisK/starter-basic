@@ -1,39 +1,68 @@
 import * as processors from 'app_modules/processors';
+import * as components from 'app_modules/components';
 
-const processorByName = Object.keys(processors).reduce((acc, key) => {
-    var processor       = processors[key];
-    acc[processor.name] = processor;
+
+var processorByName = [processors, components].reduce((acc, procesorLike) => {
+
+    Object.keys(procesorLike).forEach(key => {
+        var processor       = procesorLike[key];
+        acc[processor.name] = processor;
+    });
+
     return acc;
-}, {});
+}, {})
 
-function RendererService() {
-    var self = this;
-
-    self.process = function (target) {
+export class RendererService {
+    
+    process(target) {
         Array.prototype.forEach.call(target.querySelectorAll('[data-processors]'), node => {
-            node._processed       = node._processed || {};
-            node._processorParams = node._processorParams || {};
-            var nodeProcessors    = node.getAttribute('data-processors').split(/,\s*/).map(k => processorByName[k]);
-            nodeProcessors.forEach(processor => {
-                var params = node.getAttribute('data-processor-' + processor.name);
-                if ( params ) { params = JSON.parse(params); }
-                node._processorParams[processor.name] = params;
+            node._processed          = node._processed || {};
+            node._processorInstances = node._processorInstances || {};
+            node._processorParams    = node._processorParams || {};
+            var nodeProcessors       = node.getAttribute('data-processors').split(/,\s*/).map(k => processorByName[k]);
 
-                if ( !node._processed[processor.name] ) {
-                    processor.init(processor, node, params);
-                    node._processed[processor.name] = true;
-                }
-                processor.process(processor, node, params); // This one should work on dom refresh - but I don't have any right now
-            });
+            nodeProcessors.forEach(processor => this.applyProcessor(node, processor));
         });
     };
 
-    self.clear = function (target) {
+
+    applyProcessor(node, processor) {
+        var params = node.getAttribute('data-processor-' + processor.name);
+        if ( params ) { params = JSON.parse(params); }
+
+        node._processorParams[processor.name] = params;
+        let instance = this._getProcessorInstance(processor, node);
+
+        if ( !node._processed[processor.name] ) {
+            processor.preInit(instance, params);
+            processor.init(instance, params);
+            node._processed[processor.name] = true;
+        }
+        processor.process(instance, params); // This one should work on dom refresh - but I don't have any right now
+    }
+
+
+    _getProcessorInstance(processor, node) {
+        if ( node._processorInstances[processor.name] ) {
+            return node._processorInstances[processor.name];
+        }
+        var instance = node._processorInstances[processor.name] = {node, processor};
+
+        processor._class.instanceMethods.forEach(function (methodName) {
+            instance[methodName] = processor[methodName].bind(instance);
+        });
+        return instance;
+    };
+
+    clear(target) {
         Array.prototype.forEach.call(target.querySelectorAll('[data-processors]'), node => {
             if ( node._processed ) {
                 for (var processorName in node._processed) {
-                    var processor = processorByName[processorName];
+                    let processor = processorByName[processorName];
+                    let instance = this._getProcessorInstance(processor, node);
+
                     processor.destroy(processor, node, node._processorParams[processor.name]);
+                    processor.postDestroy(instance);
                 }
             }
         });
@@ -42,8 +71,8 @@ function RendererService() {
         }
     };
 
-    self.destroy = function (target) {
-        self.clear(target);
+    destroy(target) {
+        this.clear(target);
 
         if ( target.parentNode ) {
             target.parentNode.removeChild(target);

@@ -24,7 +24,14 @@ const PATH = [
 }, {});
 
 
-const proxyRules = {};
+const proxyRules = [
+    {
+        context: ['/dictionary/**'],
+        target : 'https://owlbot.info/api/v1/',
+        secure : false,
+        changeOrigin: true
+    }
+];
 
 const sassLoaders = [
     'css-loader',
@@ -131,17 +138,18 @@ module.exports = (process_env) => {
             loaders,
         },
         devServer : {
-            host               : 'localhost',
-            port               : 3000,
+            host             : 'localhost',
+            port             : 3000,
             //open: true,
-            inline             : true,
+            inline           : true,
             //historyApiFallback : true,
-            watchOptions       : {
+            disableHostCheck : true,
+            watchOptions     : {
                 aggregateTimeout : 300,
                 poll             : 1000
             },
-            proxy              : proxyRules,
-            compress           : true
+            proxy            : proxyRules,
+            compress         : true
         }
     };
 };

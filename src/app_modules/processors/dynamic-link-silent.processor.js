@@ -3,11 +3,11 @@ import { routingService as routing } from 'core/services';
 
 export const DynamicLinkSilentProcessor = new Processor({
     name: 'link-silent',
-    init: (self, node, params) => {
-        node.onclick = ev => {
+    init: (self, params) => {
+        self.node.onclick = ev => {
             ev.preventDefault();
             ev.stopPropagation();
-            routing.goSilent(node.href);
+            routing.goSilent(self.node.href);
         }
     }
 });
