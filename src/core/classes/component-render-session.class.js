@@ -99,7 +99,7 @@ export class ComponentRenderSession {
           // console.log('DIFF:');
           diff(anchor._savedList, list, {
             onInsert: (item, pos) => {
-              console.log('onInsert', item, pos, anchor._savedList.length);
+              // console.log('onInsert', item, pos, anchor._savedList.length);
               this.ctx[varName] = item;
               let newItem = this._renderBinding[template.type](template);
 
