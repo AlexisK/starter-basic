@@ -1,6 +1,7 @@
 import { evalRenderMap, evalExpression } from '../utils/eval-expression';
 import { componentsRendererService } from '../services/components-renderer.service';
 import { lazyTimeframe, runLazy } from '../utils/lazy-balancer';
+import { diff } from '../utils/diff';
 
 const attributesMapping = {
   class: 'className'
@@ -88,42 +89,44 @@ export class ComponentRenderSession {
       if (template._for) {
         let [varName, expr] = template._for;
         let anchor = this.createAnchor(result);
-
+        anchor._savedList = [];
         anchor._renderedItems = [];
+
         let stopBalancer = () => { };
         let worker = () => {
           let list = this.evalExpression(expr);
+          
+          // console.log('DIFF:');
+          diff(anchor._savedList, list, {
+            onInsert: (item, pos) => {
+              console.log('onInsert', item, pos, anchor._savedList.length);
+              this.ctx[varName] = item;
+              let newItem = this._renderBinding[template.type](template);
 
-          anchor._renderedItems.forEach(node => {
-            componentsRendererService.clear(node);
-            node.parentNode ? node.parentNode.removeChild(node) : null;
+              // console.log(newItem, pos, anchor._renderedItems);
+              if (pos == anchor._renderedItems.length) {
+                anchor.parentNode.insertBefore(newItem, anchor);
+              } else {
+                anchor.parentNode.insertBefore(newItem, anchor._renderedItems[pos]);
+              }
+              anchor._renderedItems.push(newItem);
+            },
+            onDelete: (item, pos) => {
+              let node = anchor._renderedItems[pos];
+              componentsRendererService.clear(node);
+              anchor.parentNode.removeChild(node);
+              anchor._renderedItems.splice(pos, 1);
+            },
+            onMove: (item, posFrom, posTo) => {
+              let nodeFrom = anchor._renderedItems[posFrom];
+              anchor.parentNode.insertBefore(nodeFrom, anchor._renderedItems[posTo]);
+              anchor._renderedItems.splice(posFrom, 1);
+              anchor._renderedItems.splice(posTo, 0, nodeFrom);
+            }
           });
-          anchor._renderedItems = [];
 
-          // let domBundle = document.createDocumentFragment();
-
-          let index = 0;
-          let lazyWorker = () => {
-            let item = list[index];
-            this.ctx[varName] = item;
-            let newItem = this._renderBinding[template.type](template);
-            anchor._renderedItems.push(newItem);
-            // domBundle.appendChild(newItem, anchor);
-            anchor.parentNode ? anchor.parentNode.insertBefore(newItem, anchor) : null;
-            index++;
-            return index < list.length;
-          }
-
-          stopBalancer();
-          stopBalancer = runLazy(lazyWorker);
-          // list.forEach(item => {
-          //   this.ctx[varName] = item;
-          //   let newItem = this._renderBinding[template.type](template);
-          //   anchor._renderedItems.push(newItem);
-          //   domBundle.appendChild(newItem, anchor);
-          // });
-          // delete this.ctx[varName];
-          // anchor.parentNode ? anchor.parentNode.insertBefore(domBundle, anchor) : null;
+          // console.log('anchor._savedList = list.slice()');
+          anchor._savedList = list.slice();
         }
 
         template._forVars.forEach(varName => this.registerWorker(varName, worker));
