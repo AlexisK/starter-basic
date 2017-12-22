@@ -1,17 +1,11 @@
-import { evalRenderMap, evalExpression } from '../utils/eval-expression';
-import { componentsRendererService } from '../services/components-renderer.service';
-import { lazyTimeframe, runLazy } from '../utils/lazy-balancer';
-import { diff } from '../utils/diff';
-
-const attributesMapping = {
-  class: 'className'
-};
-
-const attributesWithoutValue = {
-  disabled: true,
-  checked: true
-}
-
+import { evalRenderMap, evalExpression, lazyTimeframe, runLazy, diff } from 'core/utils';
+// import { componentsRendererService } from 'core/services';
+import { componentsMapping } from 'app_modules/components/mapping';
+import {
+  checkRefs, checkInputs, checkBindings,
+  checkComponentInputs,
+  render_element, createAnchor
+} from './component-renderer-helper';
 
 export class ComponentRenderSession {
   constructor(componentInstance, parent) {
@@ -24,18 +18,23 @@ export class ComponentRenderSession {
     this.evalRenderMap = evalRenderMap.bind(this.ctx);
     this.evalExpression = evalExpression.bind(this.ctx);
 
-    this.componentInstance.refresh = () => this.refresh();
+    this.componentInstance.refresh = this.refresh.bind(this);
 
     this._renderBinding = [
       () => { },
       this._render_text.bind(this),
-      this._render_tag.bind(this)
+      this._render_tag.bind(this),
+      this._render_component.bind(this)
     ];
 
     setTimeout(() => this.renderTemplate(), 1);
   }
 
   destructor() {
+    let list = Array.prototype.slice.call(this.parent.children);
+    for (let i = 0; i < list.length; i++) {
+      this._clearTarget(list[i]);
+    }
     this.clearTemplate();
     delete this.componentInstance.refresh;
   }
@@ -47,6 +46,7 @@ export class ComponentRenderSession {
       }
     } else if (this.refreshWorkers[targetVar]) {
       this.refreshWorkers[targetVar].forEach(w => w());
+      // this.childRenderSessions.forEach(s => s.refresh(targetVar));
     }
   }
 
@@ -61,8 +61,9 @@ export class ComponentRenderSession {
     return ctxCopy;
   }
 
+
   clearTemplate() {
-    componentsRendererService.clear(this.parent);
+    // componentsRendererService.clear(this.parent);
     this.refreshWorkers = {};
     let target;
     while (target = this.parent.firstChild) {
@@ -73,7 +74,7 @@ export class ComponentRenderSession {
   renderTemplate() {
     this.clearTemplate();
     this.parent.appendChild(this.render(this.componentInstance.__template));
-    componentsRendererService.process(this.parent);
+    // componentsRendererService.process(this.parent);
     // console.log(this.componentInstance.__template);
   }
 
@@ -86,16 +87,16 @@ export class ComponentRenderSession {
       });
     } else if (template.type && this._renderBinding[template.type]) {
 
+      // ---------------------------------- FOR ----------------------------------
       if (template._for) {
         let [varName, expr] = template._for;
-        let anchor = this.createAnchor(result);
+        let anchor = createAnchor(result);
         anchor._savedList = [];
         anchor._renderedItems = [];
 
-        let stopBalancer = () => { };
         let worker = () => {
           let list = this.evalExpression(expr);
-          
+
           // console.log('DIFF:');
           diff(anchor._savedList, list, {
             onInsert: (item, pos) => {
@@ -113,7 +114,7 @@ export class ComponentRenderSession {
             },
             onDelete: (item, pos) => {
               let node = anchor._renderedItems[pos];
-              componentsRendererService.clear(node);
+              // componentsRendererService.clear(node);
               anchor.parentNode.removeChild(node);
               anchor._renderedItems.splice(pos, 1);
             },
@@ -131,9 +132,12 @@ export class ComponentRenderSession {
 
         template._forVars.forEach(varName => this.registerWorker(varName, worker));
         worker();
+
+
+        // ---------------------------------- IF ----------------------------------
       } else if (template._if) {
         let expr = template._if;
-        let anchor = this.createAnchor(result);
+        let anchor = createAnchor(result);
 
         anchor._renderedItem = null;
         let worker = () => {
@@ -143,14 +147,17 @@ export class ComponentRenderSession {
               anchor.parentNode ? anchor.parentNode.insertBefore(anchor._renderedItem, anchor) : null;
             }
           } else if (anchor._renderedItem) {
-            componentsRendererService.clear(anchor._renderedItem);
+            // componentsRendererService.clear(anchor._renderedItem);
             anchor._renderedItem.parentNode ? anchor._renderedItem.parentNode.removeChild(anchor._renderedItem) : null;
             anchor._renderedItem = null;
           }
         }
-        
+
         template._ifVars.forEach(varName => this.registerWorker(varName, worker));
         worker();
+
+
+        // ---------------------------------- FOR ----------------------------------
       } else {
         result.appendChild(this._renderBinding[template.type](template));
       }
@@ -160,6 +167,7 @@ export class ComponentRenderSession {
     }
     return result;
   }
+
 
   _render_text(template) {
     if (template._renderMap) {
@@ -175,45 +183,15 @@ export class ComponentRenderSession {
     return document.createTextNode(template.data);
   }
 
+
   _render_tag(template) {
-    let newNode = this._render_element(template);
-    let needContextCopy = false;
+    let newNode = render_element(template);
 
-    if (template._ref) {
-      this.componentInstance[template._ref] = newNode;
-    }
+    checkRefs.call(this, template, newNode);
 
-    if (template._inputs) {
-      needContextCopy = true;
-      for (let attr in template._inputs) {
-        let expr = template._inputs[attr];
-
-        let worker = () => {
-          if (!(document.activeElement === newNode && attr === 'value')) {
-            newNode[attributesMapping[attr] || attr] = this.evalExpression(expr, newNode._ctx);
-          }
-        }
-
-        template._inputVars[attr].forEach(varName => this.registerWorker(varName, worker));
-        worker();
-      }
-    }
-
-    if (template._bindings) {
-      needContextCopy = true;
-      for (let eventName in template._bindings) {
-        let expr = template._bindings[eventName];
-
-        newNode.addEventListener(eventName, ev => {
-          (newNode._ctx || this.ctx)['$event'] = ev;
-          this.evalExpression(expr, newNode._ctx);
-          delete this.ctx['$event'];
-          template._bindVars[eventName].forEach(varName => this.refresh(varName));
-        });
-      }
-    }
-
-    if (needContextCopy) {
+    let hasInputs = checkInputs.call(this, template, newNode);
+    let hasBindings = checkBindings.call(this, template, newNode);
+    if (hasInputs || hasBindings) {
       newNode._ctx = this.copyContext();
     }
 
@@ -226,32 +204,34 @@ export class ComponentRenderSession {
     return newNode;
   }
 
-  _render_element(template) {
-    let newNode;
 
-    if (template._NS) {
-      newNode = document.createElementNS(template._NS, template.name);
-      newNode._NS = template._NS;
+  _render_component(template) {
+    let component = componentsMapping[template._componentSelector];
+    let parent = render_element(template);
+    parent._ctx = this.copyContext();
 
-      template.attribs.forEach(pair => {
-        newNode.setAttribute(pair[0], pair[1]);
-      });
+    let componentInstance = new component({ parent, renderer: this });
+
+    parent._renderSession = new ComponentRenderSession(
+      componentInstance,
+      parent
+    );
+
+    checkComponentInputs.call(this, template, parent, componentInstance);
+
+    return parent;
+  }
+
+
+  _clearTarget(target) {
+    if (target._renderSession) {
+      _renderSession.destructor();
     } else {
-      newNode = document.createElement(template.name);
-
-      template.attribs.forEach(pair => {
-        newNode.setAttribute(pair[0], pair[1]);
-        if (pair[1] || !attributesWithoutValue[pair[0]]) {
-          newNode[pair[0]] = pair[1];
-        }
-      });
+      let list = Array.prototype.slice.call(target.children);
+      for (let i = 0; i < list.length; i++) {
+        this._clearTarget(list[i]);
+      }
     }
-    return newNode;
   }
 
-  createAnchor(target) {
-    let newNode = document.createComment('');
-    target.appendChild(newNode);
-    return newNode;
-  }
 }

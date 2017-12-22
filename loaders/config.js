@@ -92,7 +92,8 @@ const config_dom = {
     ns: {
       viewbox: 'viewBox'
     }
-  }
+  },
+  emptyAttributes: ['checked','disabled','contenteditable']
 };
 
 module.exports = Object.assign({}, config_general, config_eval, config_dom);

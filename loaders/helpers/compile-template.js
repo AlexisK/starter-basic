@@ -74,9 +74,13 @@ function extractDecoratedAttribute(obj, storeKey, varsKey, decoratorStart, decor
 
       obj[storeKey][clearKey].workMap.forEach(pair => {
         if (pair[0] === TYPE.expression) {
-          obj[varsKey][clearKey].push(pair[1]);
+          if (pair[1][0] !== '$') {
+            obj[varsKey][clearKey].push(pair[1]);
+          }
         } else if (pair[0] === TYPE.expressionMap) {
-          obj[varsKey][clearKey].push(pair[1][0]);
+          if (pair[1][0][0] !== '$') {
+            obj[varsKey][clearKey].push(pair[1][0]);
+          }  
         }
       });
 
@@ -229,7 +233,7 @@ function removeCircularDeps(obj) {
 }
 
 // main processor
-function nodesToString(obj, params) {
+function createTemplate(obj, params) {
 
   let knownSelectors = params.selectors || [];
 
@@ -248,8 +252,12 @@ function nodesToString(obj, params) {
       checkIf(ref);
       checkFor(ref);
       checkRef(ref);
-      if (knownSelectors.indexOf(ref.name) >= 0) {
-        ref._componentSelector = ref.name;
+      for (let attr in ref.attribs) {
+        if (ref.attribs[attr] === "" && CONFIG.emptyAttributes.indexOf(attr) === -1) {
+          // component
+          ref.type = 3;
+          ref._componentSelector = '['+attr+']';
+        }
       }
       if (NSElements[ref.name]) {
         ref._NS = NSElements[ref.name];
@@ -271,7 +279,7 @@ function nodesToString(obj, params) {
 
 // exporting
 module.exports = function (html, params) {
-  let parsed = nodesToString(removeCircularDeps(HL.Node.fromString(html)), params);
+  let parsed = createTemplate(removeCircularDeps(HL.Node.fromString(html)), params);
 
   //console.log('--TPL:\n\n', html, '\n');
   //console.log('--NODE:\n\n', parsed, '\n');

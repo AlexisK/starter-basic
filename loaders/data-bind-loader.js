@@ -77,7 +77,7 @@ function prepareModified(source) {
         return injectToConstructor(classBody, name, params, this);
       });
       resolve(result);
-    }, 100);
+    }, 1);
   });
 }
 

@@ -2,7 +2,8 @@
   <div>
     <strong>Total {{data.length}} items:</strong>
     <span *if="data.length % 2 == 0">(divides by 2)</span>
-    <input type="text" placeholder="stressTestString" [value]="stressTestString" (keyup)="stressTestString = $event.target.value" />
+    <input type="text" placeholder="stressTestString" [value]="stressTestString" (keyup)="stressTestString = $event.target.value"
+    />
   </div>
   <ul>
     <li *for="pair in data" class="item">
@@ -10,6 +11,7 @@
       <strong>{{pair.1}} {{stressTestString}}</strong>
       <input type="checkbox" disabled [checked]="pair.0" />
       <button (click)="removeOption(pair)">x</button>
+      <div todo-list-item [data]="pair"></div>
     </li>
   </ul>
   <div class="add-block">
