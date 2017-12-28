@@ -6,7 +6,7 @@
     />
   </div>
   <ul>
-    <li *for="pair in data" class="item">
+    <li *for="pair in data" class="item" [t]="stressTestString">
       <input type="checkbox" [checked]="pair.0" (change)="pair.0 = $event.target.checked" />
       <strong>{{pair.1}} {{stressTestString}}</strong>
       <input type="checkbox" disabled [checked]="pair.0" />

@@ -8,12 +8,14 @@ import {
 } from './component-renderer-helper';
 
 export class ComponentRenderSession {
-  constructor(componentInstance, parent) {
+  constructor(componentInstance, parent, ctx, parentSession) {
+    this.parentSession = parentSession;
+    this.childSessions = [];
     this.parent = parent;
     this.componentInstance = componentInstance;
     this.refreshWorkers = {};
 
-    this.ctx = {};
+    this.ctx = ctx || {};
     this.ctx.__proto__ = this.componentInstance;
     this.evalRenderMap = evalRenderMap.bind(this.ctx);
     this.evalExpression = evalExpression.bind(this.ctx);
@@ -27,10 +29,17 @@ export class ComponentRenderSession {
       this._render_component.bind(this)
     ];
 
-    setTimeout(() => this.renderTemplate(), 1);
+    if (this.parentSession) {
+      this.parentSession.registerChildSession(this);
+    }
+
+    this.renderTemplate();
   }
 
   destructor() {
+    if (this.parentSession) {
+      this.parentSession.removeChildSession(this);
+    }
     let list = Array.prototype.slice.call(this.parent.children);
     for (let i = 0; i < list.length; i++) {
       this._clearTarget(list[i]);
@@ -39,13 +48,29 @@ export class ComponentRenderSession {
     delete this.componentInstance.refresh;
   }
 
+  registerChildSession(session) {
+    let ind = this.childSessions.indexOf(session);
+    if (ind < 0) {
+      this.childSessions.push(session);
+    }
+  }
+
+  removeChildSession(session) {
+    let ind = this.childSessions.indexOf(session);
+    if (ind >= 0) {
+      this.childSessions, splice(ind, 1);
+    }
+  }
+
   refresh(targetVar) {
+    // console.log(targetVar, this);
     if (!targetVar) {
       for (let varName in this.refreshWorkers) {
         this.refresh(varName);
       }
     } else if (this.refreshWorkers[targetVar]) {
       this.refreshWorkers[targetVar].forEach(w => w());
+      this.childSessions.forEach(s => s.refresh(targetVar));
       // this.childRenderSessions.forEach(s => s.refresh(targetVar));
     }
   }
@@ -76,6 +101,7 @@ export class ComponentRenderSession {
     this.parent.appendChild(this.render(this.componentInstance.__template));
     // componentsRendererService.process(this.parent);
     // console.log(this.componentInstance.__template);
+    // console.log(this.refreshWorkers);
   }
 
   render(template) {
@@ -102,7 +128,7 @@ export class ComponentRenderSession {
             onInsert: (item, pos) => {
               // console.log('onInsert', item, pos, anchor._savedList.length);
               this.ctx[varName] = item;
-              let newItem = this._renderBinding[template.type](template);
+              let newItem = this._render_forItem(template);
 
               // console.log(newItem, pos, anchor._renderedItems);
               if (pos == anchor._renderedItems.length) {
@@ -205,6 +231,27 @@ export class ComponentRenderSession {
   }
 
 
+  _render_forItem(template) {
+    let parent = render_element(template);
+    parent._ctx = this.copyContext();
+
+    let componentInstance = {
+      __template: template.children
+    };
+    componentInstance.__proto__ = this.componentInstance;
+
+    parent._renderSession = new ComponentRenderSession(
+      componentInstance,
+      parent,
+      parent._ctx,
+      this
+    );
+
+    // return this._render_componentWorker(template, parent, componentInstance);
+    return parent;
+  }
+
+
   _render_component(template) {
     let component = componentsMapping[template._componentSelector];
     let parent = render_element(template);
@@ -217,6 +264,11 @@ export class ComponentRenderSession {
       parent
     );
 
+    return this._render_componentWorker(template, parent, componentInstance);
+  }
+
+
+  _render_componentWorker(template, parent, componentInstance) {
     checkComponentInputs.call(this, template, parent, componentInstance);
 
     return parent;

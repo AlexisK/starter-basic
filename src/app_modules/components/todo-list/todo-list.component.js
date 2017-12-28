@@ -16,7 +16,7 @@ export class TodoListComponent {
       [true, 'Option 1'],
       [false, 'Option 2'],
       [false, 'Option 3'],
-      ...new Array(1).fill().map((v, k) => [false, k])
+      ...new Array(10000).fill().map((v, k) => [false, k])
     ]
   }
 
