@@ -58,7 +58,7 @@ export class ComponentRenderSession {
   removeChildSession(session) {
     let ind = this.childSessions.indexOf(session);
     if (ind >= 0) {
-      this.childSessions, splice(ind, 1);
+      this.childSessions.splice(ind, 1);
     }
   }
 
@@ -143,6 +143,7 @@ export class ComponentRenderSession {
               // componentsRendererService.clear(node);
               anchor.parentNode.removeChild(node);
               anchor._renderedItems.splice(pos, 1);
+              node._renderSession.destructor();
             },
             onMove: (item, posFrom, posTo) => {
               let nodeFrom = anchor._renderedItems[posFrom];
@@ -276,8 +277,12 @@ export class ComponentRenderSession {
 
 
   _clearTarget(target) {
+    if (target._eventListenerWorkers) {
+      target._eventListenerWorkers.forEach(pair => target.removeEventListener(pair[0], pair[1]));
+      delete target._eventListenerWorkers;
+    }
     if (target._renderSession) {
-      _renderSession.destructor();
+      target._renderSession.destructor();
     } else {
       let list = Array.prototype.slice.call(target.children);
       for (let i = 0; i < list.length; i++) {

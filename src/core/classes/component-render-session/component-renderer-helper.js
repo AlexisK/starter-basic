@@ -50,16 +50,20 @@ export function checkComponentInputs(template, parent, componentInstance) {
 }
 
 export function checkBindings(template, newNode) {
+  newNode._eventListenerWorkers = newNode._eventListenerWorkers || [];
   if (template._bindings) {
     for (let eventName in template._bindings) {
       let expr = template._bindings[eventName];
 
-      newNode.addEventListener(eventName, ev => {
+      let worker = ev => {
         (newNode._ctx || this.ctx)['$event'] = ev;
         this.evalExpression(expr, newNode._ctx);
         delete this.ctx['$event'];
         template._bindVars[eventName].forEach(varName => this.refresh(varName));
-      });
+      };
+
+      newNode.addEventListener(eventName, worker);
+      newNode._eventListenerWorkers.push([eventName, worker]);
     }
     return true;
   }

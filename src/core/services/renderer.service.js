@@ -67,10 +67,10 @@ export class RendererService {
         }
       }
     });
+    componentsRendererService.clear(target);
     while (target.firstChild) {
       target.removeChild(target.firstChild);
     }
-    componentsRendererService.clear(target);
   };
 
   destroy(target) {
