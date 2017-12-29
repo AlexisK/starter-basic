@@ -71,7 +71,7 @@ export class RoutingService {
   }
 
   goSilent(path, params, cb) {
-    this.goBasic(path, params, function (results) {
+    this.goBasic(path, params, results => {
       this.events.emit('go.silent', path, params);
       if (cb) {
         cb(results);
